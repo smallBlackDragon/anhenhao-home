@@ -1,0 +1,141 @@
+name: ci-cd
+
+run-name: ${{ github.actor }} is learning GitHub Actions
+
+on:
+  push:
+    # 提交tag名以v开头的tag时执行部署任务
+    tags:
+      - 'v*'
+    # branches:
+    #   - main
+    #   - master
+    # paths-ignore: # 下列文件的变更不触发部署，可以自行添加
+    #   - README.md
+    #   - LICENSE
+  # pull_request:
+  #   branches:
+  #     - main
+  #     - master
+  #   paths-ignore: # 下列文件的变更不触发部署，可以自行添加
+  #     - README.md
+  #     - LICENSE
+
+jobs:
+  ci:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node: [14]
+
+    steps:
+      - name: Checkout 🛎
+        uses: actions/checkout@master
+
+      - name: Setup node env 🏗
+        uses: actions/setup-node@v2.1.5
+        with:
+          node-version: ${{ matrix.node }}
+          check-latest: true
+
+      - name: Get yarn cache directory path 🛠
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - name: Cache node_modules 📦
+        uses: actions/cache@v2.1.4
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies 👨🏻‍💻
+        run: yarn
+
+      # - name: Run linter 👀
+      #   run: yarn lint
+
+      # - name: Run tests 🧪
+      #   run: yarn test
+  
+  cd:
+    # 运行环境
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node: [14]
+
+    needs: ci
+
+    # 执行的步骤
+    steps:
+      # 打包构建
+      - name: Build
+        run: |
+          yarn build
+          # 生成压缩包（打包 .output ecosystem.config.json）
+          tar -zcvf release.tgz .output ecosystem.config.json
+
+      # 发布 Release（创建Release分支）
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          # 本次提交的tag的名称
+          tag_name: ${{ github.ref }}
+          # Release版本的名称
+          release_name: Release ${{ github.ref }}
+          # 是否是草稿
+          draft: false
+          # 是否是预发布
+          prerelease: false
+
+      # 上传构建结果（release.tgz）到 Release
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          # 上传地址（创建的Release分支地址）
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          # 上传的文件
+          asset_path: ./release.tgz
+          # 上传后的文件名
+          asset_name: release.tgz
+          # 上传的文件类型
+          asset_content_type: application/x-tgz
+
+      # 部署到服务器
+      - name: Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          # 远程服务器地址
+          host: ${{ secrets.HOST }}
+          # 远程服务器用户名
+          username: ${{ secrets.USERNAME }}
+          # 远程服务器密码
+          password: ${{ secrets.PASSWORD }}
+          # 远程服务器端口号
+          port: ${{ secrets.PORT }}
+          # 命令超时配置 默认10m
+          command_timeout: 20m
+          # 运行在远程服务器的命令
+          # 1. 进入项目目录
+          # 2. 下载发布包
+          # 3. 解压缩发布包
+          # 4. 安装生产环境依赖
+          # 5. pm2运行配置文件
+          script: |
+            cd /study/anhenhao-home
+            wget https://github.com/smallBlackDragon/anhenhao-home/releases/latest/download/release.tgz -O release.tgz
+            tar zxvf release.tgz
+            pm2 reload ecosystem.config.json
