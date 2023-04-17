@@ -66,8 +66,8 @@ jobs:
       - name: Build
         run: |
           yarn build
-          # 生成压缩包（打包 .output ecosystem.config.json）
-          tar -zcvf release.tgz .output ecosystem.config.json
+          # 生成压缩包（打包 .output ecosystem.config.js）
+          tar -zcvf release.tgz .output ecosystem.config.js
 
       # 发布 Release（创建Release分支）
       - name: Create Release
@@ -124,4 +124,4 @@ jobs:
             cd /study/anhenhao-home
             wget https://github.com/smallBlackDragon/anhenhao-home/releases/latest/download/release.tgz -O release.tgz
             tar zxvf release.tgz
-            pm2 reload ecosystem.config.json
+            pm2 reload ecosystem.config.js
