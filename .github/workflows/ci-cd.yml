@@ -56,6 +56,13 @@ jobs:
       - name: Install dependencies 👨🏻‍💻
         run: yarn
 
+      - name: ls dir 👨🏻‍💻
+        run: |
+          echo '####pwd####'
+          echo `pwd`
+          echo '****ls****'
+          echo `ls`
+
       # - name: Run linter 👀
       #   run: yarn lint
 
@@ -78,8 +85,10 @@ jobs:
       # 打包构建
       - name: Build
         run: |
+          echo '####pwd########'
           echo `pwd`
-          echo $a*
+          echo '****ls*********'
+          echo `ls`
           yarn build
           # 生成压缩包（打包 .output ecosystem.config.json）
           tar -zcvf release.tgz .output ecosystem.config.json
