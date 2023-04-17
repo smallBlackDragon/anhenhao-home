@@ -1,4 +1,4 @@
-name: ci-cd
+name: CICD
 
 run-name: ${{ github.actor }} 构建部署项目
 
@@ -22,7 +22,7 @@ on:
   #     - LICENSE
 
 jobs:
-  ci:
+  cicd:
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -56,39 +56,15 @@ jobs:
       - name: Install dependencies 👨🏻‍💻
         run: yarn
 
-      - name: ls dir 👨🏻‍💻
-        run: |
-          echo '####pwd####'
-          echo `pwd`
-          echo '****ls****'
-          echo `ls`
-
       # - name: Run linter 👀
       #   run: yarn lint
 
       # - name: Run tests 🧪
       #   run: yarn test
-  
-  cd:
-    # 运行环境
-    runs-on: ${{ matrix.os }}
 
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        node: [16]
-
-    needs: ci
-
-    # 执行的步骤
-    steps:
       # 打包构建
       - name: Build
         run: |
-          echo '####pwd########'
-          echo `pwd`
-          echo '****ls*********'
-          echo `ls`
           yarn build
           # 生成压缩包（打包 .output ecosystem.config.json）
           tar -zcvf release.tgz .output ecosystem.config.json
