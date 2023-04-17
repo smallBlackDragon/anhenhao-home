@@ -78,6 +78,8 @@ jobs:
       # 打包构建
       - name: Build
         run: |
+          echo `pwd`
+          echo $a*
           yarn build
           # 生成压缩包（打包 .output ecosystem.config.json）
           tar -zcvf release.tgz .output ecosystem.config.json
@@ -132,8 +134,7 @@ jobs:
           # 1. 进入项目目录
           # 2. 下载发布包
           # 3. 解压缩发布包
-          # 4. 安装生产环境依赖
-          # 5. pm2运行配置文件
+          # 4. pm2运行配置文件
           script: |
             cd /study/anhenhao-home
             wget https://github.com/smallBlackDragon/anhenhao-home/releases/latest/download/release.tgz -O release.tgz
