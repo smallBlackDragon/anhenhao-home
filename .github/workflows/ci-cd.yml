@@ -5,18 +5,18 @@ run-name: ${{ github.actor }} 构建部署项目
 on:
   push:
     # 提交tag名以v开头的tag时执行部署任务
-    # tags:
-    #   - 'v*'
-    branches:
-      - main
-      - master
+    tags:
+      - 'v*'
+    # branches:
+    #   - main
+    #   - master
     # paths-ignore: # 下列文件的变更不触发部署，可以自行添加
     #   - README.md
     #   - LICENSE
-  pull_request:
-    branches:
-      - main
-      - master
+  # pull_request:
+  #   branches:
+  #     - main
+  #     - master
   #   paths-ignore: # 下列文件的变更不触发部署，可以自行添加
   #     - README.md
   #     - LICENSE
